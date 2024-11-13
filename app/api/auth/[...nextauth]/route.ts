@@ -1,6 +1,5 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import TwitterProvider from "next-auth/providers/twitter";
-import { NextResponse } from "next/server";
 
 // Debug logs for environment variables
 console.log('TWITTER_CLIENT_ID:', process.env.TWITTER_CLIENT_ID?.slice(0, 5) + '...');
@@ -11,7 +10,12 @@ const authOptions: NextAuthOptions = {
         TwitterProvider({
             clientId: process.env.TWITTER_CLIENT_ID as string,
             clientSecret: process.env.TWITTER_CLIENT_SECRET as string,
-            version: "2.0"
+            version: "2.0",
+            authorization: {
+                params: {
+                    scope: "users.read tweet.read offline.access",
+                }
+            }
         }),
     ],
     callbacks: {
@@ -22,8 +26,18 @@ const authOptions: NextAuthOptions = {
                     return false;
                 }
 
-                const username = (profile as any).data.username;
-                console.log('User signed in:', { name: user.name, username, providerAccountId: account.providerAccountId });
+                interface TwitterProfile {
+                    data: {
+                        username: string;
+                    };
+                }
+                const username = (profile as TwitterProfile).data?.username;
+                console.log('User signed in:', { 
+                    name: user.name, 
+                    username, 
+                    providerAccountId: account.providerAccountId,
+                    profile
+                });
                 return true;
             } catch (error) {
                 console.error('Error in signIn callback:', error);

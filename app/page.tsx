@@ -1,8 +1,9 @@
 'use client';
-import { SessionProvider, signIn, signOut, useSession } from 'next-auth/react';
+import { signIn, signOut, useSession } from 'next-auth/react';
+import Link from 'next/link';
 
 export default function Home() {
-  const { data: session, status } = <SessionProvider>useSession()</SessionProvider>;
+  const { data: session, status } = useSession();
 
   if (status === 'loading') {
     return <div>Loading...</div>;
@@ -12,10 +13,10 @@ export default function Home() {
     return (
       <div className="p-8">
         <h1 className="text-2xl font-bold mb-4">
-          Welcome, {session.user.name}! 👋
+          Welcome, {session?.user?.name}! 👋
         </h1>
         <p className="mb-4">
-          Your Twitter username is: @{session.user.username}
+          Your Twitter username is: @{session?.user?.username}
         </p>
         <button
           onClick={() => signOut()}
