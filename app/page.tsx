@@ -1,6 +1,5 @@
 'use client';
 import { signIn, signOut, useSession } from 'next-auth/react';
-import Link from 'next/link';
 import { useState } from 'react';
 
 export default function Home() {
@@ -34,15 +33,15 @@ export default function Home() {
           >
             Sign out
           </button>
-          <form onSubmit={handleSubmit} className="mb-4">
+          <form onSubmit={handleSubmit} className="mb-4 flex justify-center items-center gap-2 max-w-lg mx-auto">
             <input
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Write a message"
-              className="border p-2 rounded w-full mb-2"
+              className="border p-2 rounded w-96 text-black"
             />
-            <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+            <button type="submit" className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
               Submit
             </button>
           </form>
@@ -57,11 +56,11 @@ export default function Home() {
           </button>
         </div>
       )}
-      <div className="flex flex-col items-center">
+      <div className="grid grid-cols-3 gap-4">
         {messages.map((msg, index) => (
-          <div key={index} className="border p-4 rounded mb-2 w-1/2">
-            <p>{msg.text}</p>
-            <span className="text-sm text-gray-500">@{msg.username}</span>
+          <div key={index} className="border p-4 rounded">
+            <p className="break-words">{msg.text}</p>
+            <a href={`https://twitter.com/${msg.username}`} target="_blank" rel="noopener noreferrer" className="text-sm text-gray-500 hover:text-sky-600">@{msg.username}</a>
           </div>
         ))}
       </div>

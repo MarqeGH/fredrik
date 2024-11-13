@@ -1,6 +1,6 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import TwitterProvider from "next-auth/providers/twitter";
-import { TwitterProfile } from "@/types/types";
+import { TwitterProfile } from "@/app/types/types";
 
 declare module "next-auth" {
     interface Session {
