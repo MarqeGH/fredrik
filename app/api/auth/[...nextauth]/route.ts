@@ -1,20 +1,21 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import TwitterProvider from "next-auth/providers/twitter";
-import { Session } from 'next-auth'
-
-// Define the TwitterProfile interface
-interface TwitterProfile {
-  data: {
-    id: string;
-    name: string;
-    username: string;
-    // Add other fields as needed
-  };
-}
+import { TwitterProfile } from "@/types/types";
 
 // Debug logs for environment variables
 console.log('TWITTER_CLIENT_ID:', process.env.TWITTER_CLIENT_ID?.slice(0, 5) + '...');
 console.log('TWITTER_CLIENT_SECRET:', process.env.TWITTER_CLIENT_SECRET?.slice(0, 5) + '...');
+
+declare module "next-auth" {
+    interface Session {
+        user: {
+            name?: string | null;
+            email?: string | null;
+            image?: string | null;
+            username?: string;
+        };
+    }
+}
 
 const authOptions: NextAuthOptions = {
     providers: [
