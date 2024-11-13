@@ -1,5 +1,16 @@
 import NextAuth, { type NextAuthOptions } from "next-auth";
 import TwitterProvider from "next-auth/providers/twitter";
+import { Session } from 'next-auth'
+
+// Define the TwitterProfile interface
+interface TwitterProfile {
+  data: {
+    id: string;
+    name: string;
+    username: string;
+    // Add other fields as needed
+  };
+}
 
 // Debug logs for environment variables
 console.log('TWITTER_CLIENT_ID:', process.env.TWITTER_CLIENT_ID?.slice(0, 5) + '...');
@@ -42,12 +53,6 @@ const authOptions: NextAuthOptions = {
                     return false;
                 }
 
-                interface TwitterProfile {
-                    data: {
-                        username: string;
-                    };
-                }
-                
                 const username = (profile as TwitterProfile).data?.username;
                 if (!username) {
                     console.error('Authentication failed: No username found in Twitter profile', profile);
@@ -72,6 +77,7 @@ const authOptions: NextAuthOptions = {
                     profile: profile ? 'Present' : 'Missing'
                 });
                 return false;
+            
             }
         },
         async session({ session, token }) {
@@ -83,8 +89,8 @@ const authOptions: NextAuthOptions = {
         },
         async jwt({ token, profile }) {
             if (profile) {
-                // Save username from Twitter profile to token
-                token.username = (profile as any).data.username;
+                const twitterProfile = profile as TwitterProfile;
+                token.username = twitterProfile.data.username;
             }
             return token;
         }
