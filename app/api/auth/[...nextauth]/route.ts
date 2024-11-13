@@ -21,8 +21,24 @@ const authOptions: NextAuthOptions = {
     callbacks: {
         async signIn({ user, account, profile }) {
             try {
-                if (!account?.providerAccountId || !user.name) {
-                    console.error('Missing required user information');
+                // Detailed validation checks
+                if (!account) {
+                    console.error('Authentication failed: No account details received from Twitter');
+                    return false;
+                }
+                
+                if (!account.providerAccountId) {
+                    console.error('Authentication failed: No provider account ID received');
+                    return false;
+                }
+
+                if (!user.name) {
+                    console.error('Authentication failed: No user name received');
+                    return false;
+                }
+
+                if (!profile) {
+                    console.error('Authentication failed: No profile data received from Twitter');
                     return false;
                 }
 
@@ -31,35 +47,47 @@ const authOptions: NextAuthOptions = {
                         username: string;
                     };
                 }
+                
                 const username = (profile as TwitterProfile).data?.username;
-                console.log('User signed in:', { 
+                if (!username) {
+                    console.error('Authentication failed: No username found in Twitter profile', profile);
+                    return false;
+                }
+
+                console.log('Authentication successful:', { 
                     name: user.name, 
                     username, 
                     providerAccountId: account.providerAccountId,
-                    profile
+                    accessToken: account.access_token ? 'Present' : 'Missing',
+                    profile: JSON.stringify(profile, null, 2)
                 });
                 return true;
             } catch (error) {
-                console.error('Error in signIn callback:', error);
+                console.error('Critical error during sign-in:', {
+                    error,
+                    errorMessage: error instanceof Error ? error.message : 'Unknown error',
+                    errorStack: error instanceof Error ? error.stack : undefined,
+                    account: account ? 'Present' : 'Missing',
+                    user: user ? 'Present' : 'Missing',
+                    profile: profile ? 'Present' : 'Missing'
+                });
                 return false;
             }
         },
         async session({ session, token }) {
-            try {
-                console.log('Session created:', { session, token });
-                return session;
-            } catch (error) {
-                console.error('Error in session callback:', error);
-                return session;
+            if (session.user) {
+                // Add username to the session user object
+                session.user.username = token.username as string;
             }
+            return session;
         },
-        async jwt({ token, account }) {
-            if (account) {
-                token.sub = account.providerAccountId;
+        async jwt({ token, profile }) {
+            if (profile) {
+                // Save username from Twitter profile to token
+                token.username = (profile as any).data.username;
             }
-            console.log('JWT token created:', token);
             return token;
-        },
+        }
     },
     debug: true,
 };
