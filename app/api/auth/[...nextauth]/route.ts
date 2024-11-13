@@ -2,10 +2,6 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import TwitterProvider from "next-auth/providers/twitter";
 import { TwitterProfile } from "@/types/types";
 
-// Debug logs for environment variables
-console.log('TWITTER_CLIENT_ID:', process.env.TWITTER_CLIENT_ID?.slice(0, 5) + '...');
-console.log('TWITTER_CLIENT_SECRET:', process.env.TWITTER_CLIENT_SECRET?.slice(0, 5) + '...');
-
 declare module "next-auth" {
     interface Session {
         user: {

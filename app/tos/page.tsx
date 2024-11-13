@@ -1,6 +1,6 @@
 import React from 'react';
 
-const TosPage: React.FC = () => {
+const TermsOfService: React.FC = () => {
     return (
         <div>
             <h1>Terms of Service</h1>
@@ -9,4 +9,4 @@ const TosPage: React.FC = () => {
     );
 };
 
-export default TosPage;
+export default TermsOfService;
