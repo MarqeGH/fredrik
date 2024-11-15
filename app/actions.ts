@@ -2,15 +2,13 @@
 
 import { neon } from '@neondatabase/serverless';
 
-export async function createComment(comment: string, twitterHandle: string, twitterId: string) {
+export async function createComment(comment: string, twitterHandle: string) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
     
     await sql`
-      INSERT INTO users (twitter_id, twitter_handle)
-      VALUES (${twitterId}, ${twitterHandle})
-      ON CONFLICT (twitter_id) 
-      DO UPDATE SET twitter_handle = EXCLUDED.twitter_handle
+      UPDATE users 
+      SET twitter_handle = ${twitterHandle}
     `;
     
     const result = await sql`

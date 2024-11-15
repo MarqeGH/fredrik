@@ -23,9 +23,8 @@ export default function Home() {
 
     try {
       const twitterHandle = session?.user?.username;
-      const twitterId = (session?.user as any)?.id || '';
 
-      const result = await createComment(comment, twitterHandle || 'anonymous', twitterId);
+      const result = await createComment(comment, twitterHandle || 'anonymous');
       if (!result.success) {
         throw new Error(result.error);
       }
