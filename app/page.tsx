@@ -9,10 +9,17 @@ export default function Home() {
 
   async function create(formData: FormData) {
     const comment = formData.get('comment') as string;
+    if (!comment?.trim()) return;
+
     try {
       const result = await createComment(comment);
-      console.log('Comment creation result:', result);
-      setMessages(prev => [...prev, { text: comment, username: session?.user?.name || 'anonymous' }]);
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      setMessages(prev => [...prev, { 
+        text: comment, 
+        username: session?.user?.name || 'anonymous'
+      }]);
     } catch (error) {
       console.error('Error creating comment:', error);
     }
