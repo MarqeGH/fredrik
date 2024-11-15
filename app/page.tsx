@@ -1,19 +1,22 @@
 'use client';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useState } from 'react';
+import { createComment } from './actions';
 
 export default function Home() {
   const { data: session, status } = useSession();
-  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<{ text: string, username: string }[]>([]);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (message.trim()) {
-      setMessages([{ text: message, username: session?.user?.username || "Unknown" }, ...messages]);
-      setMessage("");
+  async function create(formData: FormData) {
+    const comment = formData.get('comment') as string;
+    try {
+      const result = await createComment(comment);
+      console.log('Comment creation result:', result);
+      setMessages(prev => [...prev, { text: comment, username: session?.user?.name || 'anonymous' }]);
+    } catch (error) {
+      console.error('Error creating comment:', error);
     }
-  };
+  }
 
   if (status === 'loading') {
     return <div>Loading...</div>;
@@ -33,11 +36,10 @@ export default function Home() {
           >
             Sign out
           </button>
-          <form onSubmit={handleSubmit} className="mb-4 flex justify-center items-center gap-2 max-w-lg mx-auto">
+          <form action={create} className="mb-4 flex justify-center items-center gap-2 max-w-lg mx-auto">
             <input
               type="text"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              name="comment"
               placeholder="Write a message"
               className="border p-2 rounded w-96 text-black"
             />
