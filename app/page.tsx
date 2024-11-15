@@ -29,8 +29,8 @@ export default function Home() {
         throw new Error(result.error);
       }
       setMessages(prev => [{ 
-        text: result.data.text, 
-        username: result.data.username
+        text: result?.data?.text || '', 
+        username: result?.data?.username || ''
       }, ...prev]);
 
       // Clear the input field
