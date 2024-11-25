@@ -30,18 +30,22 @@ export async function createComment(comment: string, twitterHandle: string) {
   }
 } 
 
-export async function getMessages() {
+export async function getMessages(session: { user: { username: string } }) {
   try {
     const sql = neon(process.env.DATABASE_URL!);
 
     const messages = await sql`
-      SELECT content, username FROM comments
-      ORDER BY created_at DESC
+      SELECT c.id, c.content, c.username, 
+      EXISTS (SELECT 1 FROM likes WHERE message_id = c.id AND user_id = ${session.user.username}) AS liked
+      FROM comments c
+      ORDER BY c.created_at DESC
     `;
 
     return messages.map(msg => ({
+      id: msg.id,
       text: msg.content,
-      username: msg.username
+      username: msg.username,
+      liked: msg.liked
     }));
   } catch (error: unknown) {
     console.error('Database error:', error);

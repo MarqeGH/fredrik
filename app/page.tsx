@@ -4,18 +4,43 @@ import { useState, useEffect, useRef } from 'react';
 import { createComment, getMessages } from './actions';
 import MessageList from './components/MessageList';
 
+// Define the Message type
+type Message = {
+  id: string;
+  text: string;
+  username: string;
+  liked: boolean;
+};
+
+// Define the expected type for the result data
+type CommentData = {
+  id: string;
+  text: string;
+  username: string;
+  liked: boolean;
+};
+
 export default function Home() {
   const { data: session, status } = useSession();
-  const [messages, setMessages] = useState<{ text: string, username: string }[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const commentInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchMessages() {
-      const fetchedMessages = await getMessages();
-      setMessages(fetchedMessages);
+      if (!session || !session.user) return;
+      const fetchedMessages = await getMessages({
+        user: { username: session.user.username || 'anonymous' }
+      });
+      const formattedMessages = fetchedMessages.map((msg: { id?: string; text: string; username: string; liked?: boolean }) => ({
+        id: msg.id || '',
+        text: msg.text,
+        username: msg.username,
+        liked: msg.liked ?? false
+      }));
+      setMessages(formattedMessages);
     }
     fetchMessages();
-  }, []);
+  }, [session]);
 
   async function create(formData: FormData) {
     const comment = formData.get('comment') as string;
@@ -24,13 +49,28 @@ export default function Home() {
     try {
       const twitterHandle = session?.user?.username;
 
-      const result = await createComment(comment, twitterHandle || 'anonymous');
-      if (!result.success) {
+      const result: { 
+        success: boolean; 
+        data?: Partial<CommentData>;
+        error?: string 
+      } = await createComment(comment, twitterHandle || 'anonymous');
+      
+      if (!result.success || !result.data) {
         throw new Error(result.error);
       }
+
+      // Ensure data includes all properties of CommentData
+      const { 
+        id = '', 
+        text = '',  // Ensure text is a string
+        username = '',  // Ensure username is a string
+        liked = false 
+      } = result.data;
       setMessages(prev => [{ 
-        text: result?.data?.text || '', 
-        username: result?.data?.username || ''
+        id,
+        text, 
+        username,
+        liked
       }, ...prev]);
 
       // Clear the input field
@@ -39,6 +79,37 @@ export default function Home() {
       }
     } catch (error) {
       console.error('Error creating comment:', error);
+    }
+  }
+
+  async function toggleLike(messageId: string) {
+    try {
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to toggle like: ${response.statusText}`);
+      }
+
+      const updatedMessage = await response.json();
+      
+      // Update the messages state with the new like status
+      setMessages(prevMessages => 
+        prevMessages.map(message => 
+          message.id === messageId 
+            ? { 
+                ...message, 
+                liked: updatedMessage.liked 
+              }
+            : message
+        )
+      );
+    } catch (error) {
+      console.error('Error toggling like:', error);
     }
   }
 
@@ -83,7 +154,7 @@ export default function Home() {
           </button>
         </div>
       )}
-      <MessageList messages={messages} />
+      <MessageList messages={messages} onToggleLike={toggleLike} />
     </div>
   );
 }
