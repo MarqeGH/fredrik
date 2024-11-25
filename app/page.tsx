@@ -27,18 +27,15 @@ export default function Home() {
 
   useEffect(() => {
     async function fetchMessages() {
-      if (!session || !session.user) return;
-      const fetchedMessages = await getMessages({
-        user: { username: session.user.username || 'anonymous' }
-      });
-      const formattedMessages = fetchedMessages.map((msg: { id?: string; text: string; username: string; liked?: boolean }) => ({
-        id: msg.id || '',
-        text: msg.text,
-        username: msg.username,
-        liked: msg.liked ?? false
-      }));
-      setMessages(formattedMessages);
+      const sessionData = session ? { 
+        user: { 
+          username: session.user?.username || 'anonymous'
+        }
+      } : null;
+      const fetchedMessages = await getMessages(sessionData);
+      setMessages(fetchedMessages);
     }
+
     fetchMessages();
   }, [session]);
 
